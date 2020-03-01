@@ -10,6 +10,9 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/golang/glog"
+	"golang.org/x/net/proxy"
 )
 
 const (
@@ -38,6 +41,28 @@ func NewClient(timeout time.Duration) *Client {
 	return &Client{
 		Timeout: timeout,
 	}
+}
+
+// NewProxyClient creates and initializes a new Client with the specified timeout.
+func NewProxyClient(proxyAddr string) *Client {
+
+	glog.Info("NewProxyClient")
+	dialer, err := proxy.SOCKS5("tcp", proxyAddr, nil, proxy.Direct)
+	if err != nil {
+		return nil
+	}
+	// setup a http client
+	httpTransport := &http.Transport{}
+	httpClient := &http.Client{Transport: httpTransport}
+	// set our socks5 as the dialer
+	httpTransport.Dial = dialer.Dial
+
+	c := &Client{
+		HTTPClient: httpClient,
+	}
+
+	return c
+
 }
 
 func (c *Client) dialContext(ctx context.Context, network, address string) (net.Conn, error) {
@@ -87,12 +112,15 @@ func (c *Client) FetchContext(ctx context.Context, req *Request) (*Response, err
 		defer cancel()
 	}
 	if req.URL != "" {
+		glog.Info("Performing HTTP Request")
 		return c.fetchHTTP(ctx, req)
 	}
+	glog.Info("Performing WHOIS Request")
 	return c.fetchWhois(ctx, req)
 }
 
 func (c *Client) fetchWhois(ctx context.Context, req *Request) (*Response, error) {
+	fmt.Printf("Performing WHOIS Request")
 	if req.Host == "" {
 		return nil, &FetchError{fmt.Errorf("no request host for %s", req.Query), "unknown"}
 	}
