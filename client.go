@@ -11,7 +11,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/golang/glog"
 	"golang.org/x/net/proxy"
 )
 
@@ -46,7 +45,6 @@ func NewClient(timeout time.Duration) *Client {
 // NewProxyClient creates and initializes a new Client with the specified timeout.
 func NewProxyClient(proxyAddr string) *Client {
 
-	glog.Info("NewProxyClient")
 	dialer, err := proxy.SOCKS5("tcp", proxyAddr, nil, proxy.Direct)
 	if err != nil {
 		return nil
@@ -112,15 +110,12 @@ func (c *Client) FetchContext(ctx context.Context, req *Request) (*Response, err
 		defer cancel()
 	}
 	if req.URL != "" {
-		glog.Info("Performing HTTP Request")
 		return c.fetchHTTP(ctx, req)
 	}
-	glog.Info("Performing WHOIS Request")
 	return c.fetchWhois(ctx, req)
 }
 
 func (c *Client) fetchWhois(ctx context.Context, req *Request) (*Response, error) {
-	fmt.Printf("Performing WHOIS Request")
 	if req.Host == "" {
 		return nil, &FetchError{fmt.Errorf("no request host for %s", req.Query), "unknown"}
 	}
