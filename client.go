@@ -11,6 +11,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/golang/glog"
 	"golang.org/x/net/proxy"
 )
 
@@ -45,15 +46,16 @@ func NewClient(timeout time.Duration) *Client {
 // NewProxyClient creates and initializes a new Client with the specified timeout.
 func NewProxyClient(proxyAddr string) *Client {
 
+	glog.Infof("NewProxyClient: %v", proxyAddr)
 	dialer, err := proxy.SOCKS5("tcp", proxyAddr, nil, proxy.Direct)
 	if err != nil {
 		return nil
 	}
 	// setup a http client
 	httpTransport := &http.Transport{}
-	httpClient := &http.Client{Transport: httpTransport}
 	// set our socks5 as the dialer
 	httpTransport.Dial = dialer.Dial
+	httpClient := &http.Client{Transport: httpTransport}
 
 	c := &Client{
 		HTTPClient: httpClient,
