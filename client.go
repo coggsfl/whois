@@ -69,6 +69,8 @@ func (c *Client) dialContext(ctx context.Context, network, address string) (net.
 	var conn net.Conn
 	var err error
 
+	glog.Infof("Network: %v, Address: %v", network, address)
+
 	switch {
 	case c.DialContext != nil:
 		conn, err = c.DialContext(ctx, network, address)
