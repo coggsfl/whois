@@ -46,30 +46,37 @@ func NewClient(timeout time.Duration) *Client {
 // NewProxyClient creates and initializes a new Client with the specified timeout.
 func NewProxyClient(proxyAddr string) *Client {
 
-	glog.Infof("NewProxyClient: %v", proxyAddr)
+	glog.Infof("** NewProxyClient: %v", proxyAddr)
 	dialer, err := proxy.SOCKS5("tcp", proxyAddr, nil, proxy.Direct)
 	if err != nil {
 		return nil
 	}
 	// setup a http client
-	httpTransport := &http.Transport{}
+	httpTransport := &http.Transport{
+		Dial:  dialer.Dial,
+		Proxy: http.ProxyFromEnvironment,
+	}
 	httpClient := &http.Client{Transport: httpTransport}
-	// set our socks5 as the dialer
-	httpTransport.Dial = dialer.Dial
 
-	c := &Client{
+	return &Client{
 		HTTPClient: httpClient,
 	}
-
-	return c
 
 }
 
 func (c *Client) dialContext(ctx context.Context, network, address string) (net.Conn, error) {
+
 	var conn net.Conn
 	var err error
 
-	conn, err = c.Dial(network, address)
+	switch {
+	case c.DialContext != nil:
+		conn, err = c.DialContext(ctx, network, address)
+	case c.Dial != nil:
+		conn, err = c.Dial(network, address)
+	default:
+		conn, err = defaultDialer.DialContext(ctx, network, address)
+	}
 
 	if err != nil {
 		return nil, err
