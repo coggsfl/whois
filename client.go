@@ -59,7 +59,7 @@ func NewProxyClient(proxyAddr string) *Client {
 	httpClient := &http.Client{Transport: httpTransport}
 
 	return &Client{
-		Dial: dialer.Dial,
+		Dial:       dialer.Dial,
 		HTTPClient: httpClient,
 	}
 
@@ -78,7 +78,7 @@ func (c *Client) dialContext(ctx context.Context, network, address string) (net.
 	case c.Dial != nil:
 		conn, err = c.Dial(network, address)
 	default:
-		conn, err = c.HTTPClient.network, address)
+		conn, err = c.Dial(network, address)
 		//conn, err = defaultDialer.DialContext(ctx, network, address)
 	}
 
