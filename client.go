@@ -53,9 +53,9 @@ func NewProxyClient(proxyAddr string) *Client {
 	}
 	// setup a http client
 	httpTransport := &http.Transport{}
+	httpClient := &http.Client{Transport: httpTransport}
 	// set our socks5 as the dialer
 	httpTransport.Dial = dialer.Dial
-	httpClient := &http.Client{Transport: httpTransport}
 
 	c := &Client{
 		HTTPClient: httpClient,
@@ -68,6 +68,20 @@ func NewProxyClient(proxyAddr string) *Client {
 func (c *Client) dialContext(ctx context.Context, network, address string) (net.Conn, error) {
 	var conn net.Conn
 	var err error
+
+	conn, err = c.Dial(network, address)
+
+	if err != nil {
+		return nil, err
+	}
+	if deadline, ok := ctx.Deadline(); ok {
+		err = conn.SetDeadline(deadline)
+	}
+	return conn, err
+
+}
+
+/*
 	switch {
 	case c.DialContext != nil:
 		conn, err = c.DialContext(ctx, network, address)
@@ -76,14 +90,7 @@ func (c *Client) dialContext(ctx context.Context, network, address string) (net.
 	default:
 		conn, err = defaultDialer.DialContext(ctx, network, address)
 	}
-	if err != nil {
-		return nil, err
-	}
-	if deadline, ok := ctx.Deadline(); ok {
-		err = conn.SetDeadline(deadline)
-	}
-	return conn, err
-}
+*/
 
 var defaultDialer = &net.Dialer{}
 
