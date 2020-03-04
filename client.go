@@ -75,7 +75,8 @@ func (c *Client) dialContext(ctx context.Context, network, address string) (net.
 	case c.Dial != nil:
 		conn, err = c.Dial(network, address)
 	default:
-		conn, err = defaultDialer.DialContext(ctx, network, address)
+		conn, err = c.Dial(network, address)
+		//conn, err = defaultDialer.DialContext(ctx, network, address)
 	}
 
 	if err != nil {
