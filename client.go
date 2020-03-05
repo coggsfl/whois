@@ -11,7 +11,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/golang/glog"
 	"golang.org/x/net/proxy"
 )
 
@@ -46,7 +45,6 @@ func NewClient(timeout time.Duration) *Client {
 // NewProxyClient creates and initializes a new Client with the specified timeout.
 func NewProxyClient(proxyAddr string) *Client {
 
-	glog.Infof("NewProxyClient: %v", proxyAddr)
 	dialer, err := proxy.SOCKS5("tcp", proxyAddr, nil, proxy.Direct)
 	if err != nil {
 		return nil
@@ -70,16 +68,13 @@ func (c *Client) dialContext(ctx context.Context, network, address string) (net.
 	var conn net.Conn
 	var err error
 
-	glog.Infof("Network: %v, Address: %v", network, address)
-
 	switch {
 	case c.DialContext != nil:
 		conn, err = c.DialContext(ctx, network, address)
 	case c.Dial != nil:
 		conn, err = c.Dial(network, address)
 	default:
-		conn, err = c.Dial(network, address)
-		//conn, err = defaultDialer.DialContext(ctx, network, address)
+		conn, err = defaultDialer.DialContext(ctx, network, address)
 	}
 
 	if err != nil {
@@ -91,17 +86,6 @@ func (c *Client) dialContext(ctx context.Context, network, address string) (net.
 	return conn, err
 
 }
-
-/*
-	switch {
-	case c.DialContext != nil:
-		conn, err = c.DialContext(ctx, network, address)
-	case c.Dial != nil:
-		conn, err = c.Dial(network, address)
-	default:
-		conn, err = defaultDialer.DialContext(ctx, network, address)
-	}
-*/
 
 var defaultDialer = &net.Dialer{}
 
