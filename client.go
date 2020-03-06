@@ -43,7 +43,7 @@ func NewClient(timeout time.Duration) *Client {
 }
 
 // NewProxyClient creates and initializes a new Client with the specified timeout.
-func NewProxyClient(proxyAddr string) *Client {
+func NewProxyClient(proxyAddr string, timeout time.Duration) *Client {
 
 	dialer, err := proxy.SOCKS5("tcp", proxyAddr, nil, proxy.Direct)
 	if err != nil {
@@ -58,6 +58,7 @@ func NewProxyClient(proxyAddr string) *Client {
 
 	return &Client{
 		Dial:       dialer.Dial,
+		Timeout:    timeout,
 		HTTPClient: httpClient,
 	}
 
